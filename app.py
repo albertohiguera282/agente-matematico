@@ -74,7 +74,7 @@ elif opcion == "🧠 IA Matemática":
 
 x = sp.symbols('x')
 
-ecuacion = sp.solve((x - 10)**2 - 49)
+ecuacion = sp.solve(2*x + 10, x)
 
 st.write(ecuacion)
 st.write("Resultado de la ecuación")
@@ -82,3 +82,4 @@ st.write("Resultado de la ecuación")
 st.success(ecuacion)
 
 st.subheader("Más ejercicios")
+

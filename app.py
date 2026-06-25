@@ -201,7 +201,6 @@ rama_seleccionada = st.sidebar.radio(
         "⚙️ Optimización",
         "💵 Matemática Financiera",
         "🧠 Lógica Matemática"
-    
     ]
 )
 

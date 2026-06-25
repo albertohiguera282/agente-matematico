@@ -191,14 +191,17 @@ st.sidebar.markdown(
 st.sidebar.subheader("📐 Ramas Matemáticas")
 rama_seleccionada = st.sidebar.radio(
     "Selecciona la rama a trabajar:",
-    [
+    
+   [
+        "🏠 Inicio",
         "📐 Álgebra Universitaria",
-        "📈 Cálculo Diferencial e Integral",
+        "📉 Cálculo Diferencial",
         "📊 Estadística y Probabilidad",
-        "🏛️ Geometría y Trigonometría",
-        "🧠 Lógica Matemática",
+        "📐 Geometría",
+        "⚙️ Optimización",
         "💵 Matemática Financiera",
-        "⚙️ Optimización (P. Lineal)"
+        "🧠 Lógica Matemática"
+    
     ]
 )
 
@@ -837,56 +840,6 @@ elif rama_seleccionada == "🧠 Lógica Matemática":
 
 
 # ----------------- 6. MATEMÁTICA FINANCIERA -----------------
-# ----------------- 5. LOGICA MATEMATICA -----------------
-elif rama_seleccionada == "🧠 Lógica Matemática":
-    st.subheader("Generador de Tablas de Verdad Proposicionales")
-    st.write("Ingresa una proposición lógica usando letras mayúsculas (P, Q, R...).")
-    st.write("Operadores: `^` AND | `v` OR | `~` NOT | `->` Condicional | `<->` Bicondicional")
-
-    leyes = {
-        "1. Identidad":          "P <-> P",
-        "2. Doble negación":     "P <-> ~(~P)",
-        "3. Tercero excluido":   "P v ~P",
-        "4. No contradicción":  "~(P ^ ~P)",
-        "5. Conmutativa AND":    "(P ^ Q) <-> (Q ^ P)",
-        "6. Conmutativa OR":     "(P v Q) <-> (Q v P)",
-        "7. Asociativa AND":     "((P ^ Q) ^ R) <-> (P ^ (Q ^ R))",
-        "8. Asociativa OR":      "((P v Q) v R) <-> (P v (Q v R))",
-        "9. Distributiva 1":     "(P ^ (Q v R)) <-> ((P ^ Q) v (P ^ R))",
-        "10. Distributiva 2":    "(P v (Q ^ R)) <-> ((P v Q) ^ (P v R))",
-        "11. De Morgan 1":       "~(P ^ Q) <-> (~P v ~Q)",
-        "12. De Morgan 2":       "~(P v Q) <-> (~P ^ ~Q)",
-        "13. Absorción 1":       "(P v (P ^ Q)) <-> P",
-        "14. Absorción 2":       "(P ^ (P v Q)) <-> P",
-        "15. Implicación":       "(P -> Q) <-> (~P v Q)",
-        "16. Contraposición":    "(P -> Q) <-> (~Q -> ~P)",
-        "17. Bicondicional":     "(P <-> Q) <-> ((P -> Q) ^ (Q -> P))",
-    }
-
-    st.markdown("#### Leyes Lógicas — haz clic para cargar")
-    cols_l = st.columns(3)
-    for idx, (nombre, formula) in enumerate(leyes.items()):
-        with cols_l[idx % 3]:
-            if st.button(nombre, key=f"ley_{idx}"):
-                st.session_state["formula_logica_val"] = formula
-
-    formula_logica = st.text_input(
-        "Proposición lógica:",
-        value=st.session_state.get("formula_logica_val", "(P -> Q) ^ (~Q -> ~P)"),
-        key="formula_logica_input"
-    )
-
-    if st.button("Generar Tabla de Verdad", key="btn_tabla_verdad"):
-        try:
-            res = logica.generar_tabla_verdad(formula_logica)
-            st.success(f"Clasificación: **{res['Clasificacion']}**")
-            df_tabla = pd.DataFrame(res["Tabla"])
-            cols_ord = res["Variables"] + ["Resultado"]
-            st.table(df_tabla[cols_ord])
-        except Exception as e:
-            st.error(f"Error generando tabla de verdad: {e}")
-
-
 elif rama_seleccionada == "💵 Matemática Financiera":
     import finanzas
 

@@ -198,7 +198,7 @@ rama_seleccionada = st.sidebar.radio(
         "📉 Cálculo Diferencial",
         "📊 Estadística y Probabilidad",
         "📐 Geometría",
-        "⚙️ Optimización",
+        "⚙️ Optimización (P. Lineal)",
         "💵 Matemática Financiera",
         "🧠 Lógica Matemática"
     ]

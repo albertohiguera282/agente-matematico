@@ -179,45 +179,47 @@ else:
     )
 
 # Estado del agente
-st.sidebar.subheader("🤖 Estado de la Entidad")
-st.sidebar.markdown(
-    '<div class="math-card"><span class="agent-status-online"></span><b>Modo Razonamiento:</b> Activo<br>'
-    '<b>Precisión Simbólica:</b> Exacta (SymPy)<br>'
-    '<b>Graficador:</b> Matplotlib 2D/3D</div>',
-    unsafe_allow_html=True
-)
-
-# Selector de ramas matemáticas (Ordenadas alfabéticamente)
-st.sidebar.subheader("📐 Ramas Matemáticas")
 rama_seleccionada = st.sidebar.radio(
     "Selecciona la rama a trabajar:",
-    
     [
-        if opcion == "🏠 Inicio":
-    st.title("Bienvenido al Agente Matemático")
-    
-elif opcion == "🔢 Álgebra Universitaria":
-    st.title("Motor de Álgebra Universitaria")
-
-elif opcion == "📈 Cálculo Diferencial":
-    st.title("Motor de Cálculo Diferencial")
-
-elif opcion == "📊 Estadística y Probabilidad":
-    st.title("Motor de Estadística y Probabilidad")
-
-elif opcion == "📐 Geometría":
-    st.title("Motor de Geometría")
-
-elif opcion == "🎯 Optimización (Programación Lineal)":
-    st.title("Optimización de Programación Lineal")
-
-elif opcion == "💵 Matemática Financiera":
-    st.title("Motor de Matemática Financiera")
-
-elif opcion == "🧠 Lógica Matemática":
-    st.title("Motor de Lógica Matemática")
+        "🏠 Inicio",
+        "🔢 Álgebra Universitaria",
+        "📈 Cálculo Diferencial",
+        "📊 Estadística y Probabilidad",
+        "📐 Geometría",
+        "🎯 Optimización (Programación Lineal)",
+        "💵 Matemática Financiera",
+        "🧠 Lógica Matemática"
     ]
 )
+
+# Evaluación de la materia seleccionada
+if rama_seleccionada == "🏠 Inicio":
+    st.write("Bienvenido al Agente Matemático")
+
+# Ahora sí, debajo del menú, evaluamos qué seleccionó el usuario:
+if rama_seleccionada == "🏠 Inicio":
+    st.write("Bienvenido al Agente Matemático")
+    # Aquí va el contenido de su pantalla de inicio...
+
+elif rama_seleccionada == "🔢 Álgebra Universitaria":
+    st.title("Motor de Álgebra Universitaria")
+
+elif rama_seleccionada == "📈 Cálculo Diferencial":
+    st.title("Motor de Cálculo Diferencial")
+
+elif rama_seleccionada == "📊 Estadística y Probabilidad":
+    st.title("Motor de Estadística y Probabilidad")
+
+elif rama_seleccionada == "📐 Geometría":
+    st.title("Motor de Geometría")
+
+elif rama_seleccionada == "🎯 Optimización (Programación Lineal)":
+    st.title("Optimización de Programación Lineal")
+
+elif rama_seleccionada == "💵 Matemática Financiera":
+    st.title("Motor de Matemática Financiera")
+
 
 # ================= CABECERA DE LA PÁGINA PRINCIPAL =================
 st.markdown(

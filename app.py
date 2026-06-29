@@ -192,15 +192,30 @@ st.sidebar.subheader("📐 Ramas Matemáticas")
 rama_seleccionada = st.sidebar.radio(
     "Selecciona la rama a trabajar:",
     
-   [
-        "🏠 Inicio",
-        "📐 Álgebra Universitaria",
-        "📉 Cálculo Diferencial",
-        "📊 Estadística y Probabilidad",
-        "📐 Geometría",
-        "⚙️ Optimización (P. Lineal)",
-        "💵 Matemática Financiera",
-        "🧠 Lógica Matemática"
+    [
+        if opcion == "🏠 Inicio":
+    st.title("Bienvenido al Agente Matemático")
+    
+elif opcion == "🔢 Álgebra Universitaria":
+    st.title("Motor de Álgebra Universitaria")
+
+elif opcion == "📈 Cálculo Diferencial":
+    st.title("Motor de Cálculo Diferencial")
+
+elif opcion == "📊 Estadística y Probabilidad":
+    st.title("Motor de Estadística y Probabilidad")
+
+elif opcion == "📐 Geometría":
+    st.title("Motor de Geometría")
+
+elif opcion == "🎯 Optimización (Programación Lineal)":
+    st.title("Optimización de Programación Lineal")
+
+elif opcion == "💵 Matemática Financiera":
+    st.title("Motor de Matemática Financiera")
+
+elif opcion == "🧠 Lógica Matemática":
+    st.title("Motor de Lógica Matemática")
     ]
 )
 

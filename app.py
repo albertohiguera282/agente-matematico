@@ -1,6 +1,5 @@
 ﻿import algebra
 import calculo
-import estadistica
 import finanzas
 import geometria
 import ia
@@ -414,27 +413,35 @@ elif rama_seleccionada == "📈 Cálculo Diferencial e Integral":
                 st.error(f"Error integrando: {e}")
 
 # ----------------- 3. ESTADÍSTICA Y PROBABILIDAD -----------------
-elif rama_seleccionada == "📊 Estadística y Probabilidad":
-    tab_desc, tab_prob, tab_inf = st.tabs([
-        "📊 Estadística Descriptiva",
-        "🎯 Probabilidad y Distribuciones",
-        "🧪 Inferencia y Muestreo"
-    ])
-
-    with tab_desc:
-        st.subheader("Análisis de Datos Descriptivos")
-        st.write("Introduce una lista de datos numéricos separados por comas para evaluar su comportamiento central, dispersión y percentiles.")
-        texto_datos = st.text_input("Datos separados por comas:", value="10, 15, 12, 18, 22, 14, 15, 17, 19, 21, 24")
-
-        tipo_grafico = st.selectbox(
-            "Selecciona el gráfico descriptivo:",
-            ["Histograma", "Gráfico de Líneas", "Caja y Bigotes (Box Plot)"]
-        )
-
         if st.button("Analizar Datos"):
             try:
+                import numpy as np
+                import pandas as pd
+                import matplotlib.pyplot as plt
+
                 datos = [float(x.strip()) for x in texto_datos.split(",") if x.strip() != ""]
-                res = estadistica.descriptiva(datos)
+                df = pd.DataFrame(datos, columns=["Valores"])
+
+                # --- CÁLCULOS NATIVOS CON PANDAS Y NUMPY ---
+                res = {
+                    'Cantidad': len(datos),
+                    'Media': df["Valores"].mean(),
+                    'Mediana': df["Valores"].median(),
+                    'Moda': df["Valores"].mode()[0] if not df["Valores"].mode().empty else datos[0],
+                    'Minimo': df["Valores"].min(),
+                    'Maximo': df["Valores"].max(),
+                    'Rango': df["Valores"].max() - df["Valores"].min(),
+                    'Varianza': df["Valores"].var(ddof=1) if len(datos) > 1 else 0.0,
+                    'Devviacion_Estandar': df["Valores"].std(ddof=1) if len(datos) > 1 else 0.0,
+                    'Q1': df["Valores"].quantile(0.25),
+                    'Q2': df["Valores"].quantile(0.50),
+                    'Q3': df["Valores"].quantile(0.75),
+                    'P10': df["Valores"].quantile(0.10),
+                    'P90': df["Valores"].quantile(0.90)
+                }
+                
+                # Coeficiente de variación
+                res['Coeficiente_Variacion (%)'] = (res['Devviacion_Estandar'] / res['Media'] * 100) if res['Media'] != 0 else 0
 
                 st.success("¡Cálculo descriptivo completado!")
                 col_met1, col_met2, col_met3 = st.columns(3)
@@ -454,7 +461,7 @@ elif rama_seleccionada == "📊 Estadística y Probabilidad":
                     if isinstance(res["Varianza"], float):
                         st.write(f"• Varianza ($s^2$): `{res['Varianza']:.4f}`")
                         st.write(f"• Desviación estándar ($s$): `{res['Devviacion_Estandar']:.4f}`")
-                        st.write(f"• Coef. Variación: `{res['Coeficiente_Variacion (%)']}%`")
+                        st.write(f"• Coef. Variación: `{res['Coeficiente_Variacion (%)']:.2f}%`")
                     else:
                         st.write(f"• Varianza: {res['Varianza']}")
 
@@ -479,8 +486,8 @@ elif rama_seleccionada == "📊 Estadística y Probabilidad":
                                medianprops=dict(color="#9B5DE5", linewidth=2.5),
                                whiskerprops=dict(color="white"),
                                capprops=dict(color="white"))
-                    ax.set_title("Gráfico de Caja y Bigotes", color="white")
-
+                    ax.set_title("Gráfico de Caja y Bigotes", color="white") 
+            
                 fig.patch.set_facecolor("#0E1117")
                 ax.set_facecolor("#1E1E24")
                 ax.tick_params(colors="white")
@@ -489,101 +496,46 @@ elif rama_seleccionada == "📊 Estadística y Probabilidad":
             except Exception as e:
                 st.error(f"Error calculando estadísticas descriptivas: {e}")
 
-    with tab_prob:
-        st.subheader("Modelado de Distribuciones de Probabilidad")
-        tipo_dist = st.radio("Elige la distribución:", ["Normal Continua", "Binomial Discreta"])
+            with tab_prob:
+                st.subheader("Modelado de Distribuciones de Probabilidad")
+                tipo_dist = st.radio("Elige la distribución:", ["Normal Continua", "Binomial Discreta"])
 
         if tipo_dist == "Normal Continua":
             col_norm = st.columns(4)
             mu = col_norm[0].number_input("Media (mu)", value=0.0)
             sigma = col_norm[1].number_input("Desv. Estandár (sigma)", value=1.0, min_value=0.01)
             x_val = col_norm[2].number_input("Valor X a evaluar", value=1.0)
-            op_norm = col_norm[3].selectbox("Operación:", ["<=", ">="])
+            op_norm = col_norm[3].selectbox("Operación:", ["<= ", ">= "])
 
             if st.button("Calcular Probabilidad Normal"):
-                res = estadistica.analizar_distribucion_normal(mu, sigma, x_val, op_norm)
-                st.success(f"Probabilidad Hallada: {res['Probabilidad']:.6f}")
-                st.latex(f"{res['Titulo_Formula']} = {res['Probabilidad']:.6f}")
-                st.pyplot(res["Fig"])
-        else:
-            col_binom = st.columns(4)
-            n_binom = col_binom[0].number_input("Ensayos (n)", value=10, min_value=1)
-            p_binom = col_binom[1].number_input("Prob. Éxito (p)", value=0.5, min_value=0.0, max_value=1.0)
-            k_binom = col_binom[2].number_input("Éxitos (k)", value=5, min_value=0, max_value=n_binom)
-            op_binom = col_binom[3].selectbox("Operación:", ["=", "<=", ">="])
-
-            if st.button("Calcular Probabilidad Binomial"):
-                res = estadistica.analizar_distribucion_binomial(n_binom, p_binom, k_binom, op_binom)
-                st.success(f"Probabilidad Hallada: {res['Probabilidad']:.6f}")
-                st.latex(f"{res['Titulo_Formula']} = {res['Probabilidad']:.6f}")
-                st.pyplot(res["Fig"])
-
-    with tab_inf:
-        st.subheader("Inferencia y Muestreo")
-        st.write("#### 1. Intervalo de Confianza para la Media (t-Student)")
-        texto_inf = st.text_input("Introduce datos de la muestra:", value="15, 17, 16, 19, 14, 18, 20, 16, 17, 18", key="inf_data")
-        confianza_val = st.slider("Nivel de Confianza", min_value=0.80, max_value=0.99, value=0.95, step=0.01)
-
-        if st.button("Calcular Intervalo"):
-            try:
-                datos = [float(x.strip()) for x in texto_inf.split(",") if x.strip() != ""]
-                res = estadistica.calcular_intervalo_confianza(datos, confianza_val)
-                if isinstance(res, str):
-                    st.warning(res)
+                from scipy.stats import norm
+                
+                # Cálculo nativo de la distribución normal para sustituir el viejo método
+                if op_norm.strip() == "<=":
+                    probabilidad = norm.cdf(x_val, mu, sigma)
+                    formula_latex = f"P(X \\le {x_val})"
                 else:
-                    st.info(f"Intervalo del {res['Confianza_Pct']}% de Confianza para la media:")
-                    st.latex(f"IC: [{res['Limite_Inferior']:.4f}, \\quad {res['Limite_Superior']:.4f}]")
-                    st.write(f"• Media muestral: `{res['Media']:.4f}`")
-                    st.write(f"• Margen de error: `{res['Margen_Error']:.4f}`")
-            except Exception as e:
-                st.error(f"Error: {e}")
+                    probabilidad = 1 - norm.cdf(x_val, mu, sigma)
+                    formula_latex = f"P(X \\ge {x_val})"
+                
+                st.success(f"Probabilidad Hallada: {probabilidad:.6f}")
+                st.latex(f"{formula_latex} = {probabilidad:.6f}")
 
-        st.write("---")
-        st.write("#### 2. Prueba t de Hipótesis para Una Muestra")
-        cols_test = st.columns(3)
-        mu_h0 = cols_test[0].number_input("Media a contrastar (H0)", value=15.0)
-        cola_test = cols_test[1].selectbox("Hipótesis Alternativa (H1)", ["dos-colas", "menor", "mayor"])
-        alpha_test = cols_test[2].number_input("Nivel de significancia (alpha)", value=0.05, min_value=0.001, max_value=0.20)
-
-        if st.button("Ejecutar Prueba de Hipótesis"):
-            try:
-                datos = [float(x.strip()) for x in texto_inf.split(",") if x.strip() != ""]
-                res = estadistica.realizar_prueba_hipotesis_t(datos, mu_h0, cola_test, alpha_test)
-                if isinstance(res, str):
-                    st.warning(res)
+                # Gráfica nativa de la campana
+                fig, ax = plt.subplots(figsize=(7, 3.5))
+                x_axis = np.linspace(mu - 4*sigma, mu + 4*sigma, 500)
+                ax.plot(x_axis, norm.pdf(x_axis, mu, sigma), color="#9B5DE5", linewidth=2)
+                
+                if op_norm.strip() == "<=":
+                    x_fill = np.linspace(mu - 4*sigma, x_val, 200)
                 else:
-                    st.write("### Resultados del Contraste:")
-                    st.latex(f"H_0: {res['H0']}")
-                    st.latex(f"H_1: {res['H1']}")
-                    st.write(f"• Media Muestral: `{res['Media_Muestral']:.4f}`")
-                    st.write(f"• Grados de Libertad: `{res['Grados_Libertad']}`")
-                    st.write(f"• Estadístico t calculado: `{res['Estadistico_t']:.4f}`")
-                    st.write(f"• p-valor obtenido: `{res['p_valor']:.6f}`")
-
-                    if res["Decision"] == "Rechazar H0":
-                        st.error(f"Resultado: **Rechazar H0** (Se acepta la hipótesis alternativa H1 con un nivel de significancia de {res['Alpha']})")
-                    else:
-                        st.info(f"Resultado: **No rechazar H0** (No hay suficiente evidencia estadística para rechazar la hipótesis nula)")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-        st.write("---")
-        st.write("#### 3. Tamaño de Muestra Requerido")
-        col_t_mu = st.columns(5)
-        tipo_mu = col_t_mu[0].selectbox("Estimar:", ["media", "proporción"])
-        pob_mu = col_t_mu[1].text_input("Tamaño Población (opcional)", value="")
-        err_mu = col_t_mu[2].number_input("Margen Error Admitido", value=0.05, min_value=0.001)
-        sigma_p_mu = col_t_mu[3].number_input("Desv. Estándar / Prop. estimada", value=0.5, min_value=0.001)
-        conf_mu = col_t_mu[4].slider("Confianza", min_value=0.80, max_value=0.99, value=0.95)
-
-        if st.button("Calcular Tamaño de Muestra"):
-            try:
-                N = int(pob_mu) if pob_mu.strip() else None
-                n_opt = estadistica.calcular_tamano_muestra(tipo_mu, N, err_mu, sigma_p_mu, conf_mu)
-                st.success(f"El tamaño de muestra recomendado ($n$) es de: **{n_opt}** unidades.")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
+                    x_fill = np.linspace(x_val, mu + 4*sigma, 200)
+                    
+                ax.fill_between(x_fill, norm.pdf(x_fill, mu, sigma), color="#00F5D4", alpha=0.5)
+                fig.patch.set_facecolor("#0E1117")
+                ax.set_facecolor("#1E1E24")
+                ax.tick_params(colors="white")
+                st.pyplot(fig)
 # ----------------- 4. GEOMETRÍA Y TRIGONOMETRÍA -----------------
 elif rama_seleccionada == "🏛️ Geometría y Trigonometría":
     tab_analitica, tab_triangulos, tab_trig, tab_ondas = st.tabs([

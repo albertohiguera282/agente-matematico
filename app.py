@@ -1,5 +1,10 @@
-﻿import algebra
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
+
+import algebra
 import calculo
+import estadistica
 import finanzas
 import geometria
 import ia
@@ -183,41 +188,15 @@ rama_seleccionada = st.sidebar.radio(
     [
         "🏠 Inicio",
         "🔢 Álgebra Universitaria",
-        "📈 Cálculo Diferencial",
+        "📈 Cálculo Diferencial e Integral",
         "📊 Estadística y Probabilidad",
-        "📐 Geometría",
+        "📐 Geometría y Trigonometría",
         "🎯 Optimización (Programación Lineal)",
         "💵 Matemática Financiera",
         "🧠 Lógica Matemática"
     ]
 )
 
-# Evaluación de la materia seleccionada
-if rama_seleccionada == "🏠 Inicio":
-    st.write("Bienvenido al Agente Matemático")
-
-# Ahora sí, debajo del menú, evaluamos qué seleccionó el usuario:
-if rama_seleccionada == "🏠 Inicio":
-    st.write("Bienvenido al Agente Matemático")
-    # Aquí va el contenido de su pantalla de inicio...
-
-elif rama_seleccionada == "🔢 Álgebra Universitaria":
-    st.title("Motor de Álgebra Universitaria")
-
-elif rama_seleccionada == "📈 Cálculo Diferencial":
-    st.title("Motor de Cálculo Diferencial")
-
-elif rama_seleccionada == "📊 Estadística y Probabilidad":
-    st.title("Motor de Estadística y Probabilidad")
-
-elif rama_seleccionada == "📐 Geometría":
-    st.title("Motor de Geometría")
-
-elif rama_seleccionada == "🎯 Optimización (Programación Lineal)":
-    st.title("Optimización de Programación Lineal")
-
-elif rama_seleccionada == "💵 Matemática Financiera":
-    st.title("Motor de Matemática Financiera")
 
 
 # ================= CABECERA DE LA PÁGINA PRINCIPAL =================
@@ -229,8 +208,60 @@ st.write("---")
 
 # ================= RENDERIZADO DE RAMAS MATEMÁTICAS (ORDENADO ALFABÉTICAMENTE) =================
 
+# ----------------- 0. INICIO -----------------
+if rama_seleccionada == "🏠 Inicio":
+    st.markdown("""
+    <div style="background: rgba(30, 30, 36, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 22px; margin-bottom: 20px; backdrop-filter: blur(4px);">
+        <h3>👋 ¡Bienvenido a Agent-Math!</h3>
+        <p>Tu asistente inteligente y agente de razonamiento para matemáticas universitarias. Este agente te permite realizar cálculos exactos de forma simbólica, visualizar funciones, analizar datos estadísticos y resolver problemas complejos paso a paso con el poder de la Inteligencia Artificial.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("### 🛠️ Módulos de Razonamiento Disponibles:")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div class="math-card">
+            <h4>🔢 Álgebra Universitaria</h4>
+            <p>Operaciones con matrices simbólicas (determinantes, RREF, inversas), sistemas de ecuaciones lineales y análisis/factorización de polinomios.</p>
+        </div>
+        <div class="math-card">
+            <h4>📈 Cálculo Diferencial e Integral</h4>
+            <p>Cálculo de derivadas, localización de puntos críticos, graficación de funciones y cálculo de integrales definidas e indefinidas con áreas sombreadas.</p>
+        </div>
+        <div class="math-card">
+            <h4>📊 Estadística y Probabilidad</h4>
+            <p>Cálculo de medidas descriptivas de centralización y dispersión, visualización de datos mediante histogramas o cajas, y modelado de distribuciones normal y binomial.</p>
+        </div>
+        <div class="math-card">
+            <h4>📐 Geometría y Trigonometría</h4>
+            <p>Cálculo de distancias y rectas en el plano cartesiano, resolución de triángulos por leyes de seno/coseno, y graficador interactivo de funciones trigonométricas.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown("""
+        <div class="math-card">
+            <h4>🎯 Optimización (Programación Lineal)</h4>
+            <p>Resolución gráfica para dos variables, método Simplex para N variables, programación lineal entera y modelado de transporte y asignación.</p>
+        </div>
+        <div class="math-card">
+            <h4>💵 Matemática Financiera</h4>
+            <p>Simulador de tablas de amortización (cuota fija, constante, gradiente aritmético y geométrico) y evaluación de proyectos de inversión mediante VAN y TIR.</p>
+        </div>
+        <div class="math-card">
+            <h4>🧠 Lógica Matemática</h4>
+            <p>Generador interactivo de tablas de verdad proposicionales y verificador automático de leyes lógicas equivalentes.</p>
+        </div>
+        <div class="math-card">
+            <h4>🤖 Consultas con IA</h4>
+            <p>Utiliza el Agente de Razonamiento Gemini en cada área para resolver ejercicios detalladamente paso a paso con salida formateada en LaTeX.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
 # ----------------- 1. ÁLGEBRA UNIVERSITARIA -----------------
-if rama_seleccionada == "📐 Álgebra Universitaria":
+elif rama_seleccionada == "🔢 Álgebra Universitaria":
     tab_matrices, tab_sistemas, tab_polinomios = st.tabs([
         "🧮 Operaciones Matriciales",
         "🔗 Sistemas de Ecuaciones",
@@ -413,131 +444,132 @@ elif rama_seleccionada == "📈 Cálculo Diferencial e Integral":
                 st.error(f"Error integrando: {e}")
 
 # ----------------- 3. ESTADÍSTICA Y PROBABILIDAD -----------------
-        if st.button("Analizar Datos"):
+elif rama_seleccionada == "📊 Estadística y Probabilidad":
+    tab_desc, tab_prob = st.tabs([
+        "📊 Estadística Descriptiva",
+        "🎲 Probabilidad y Distribuciones"
+    ])
+    
+    with tab_desc:
+        st.subheader("Análisis Descriptivo de Datos")
+        texto_datos = st.text_area(
+            "Ingresa los datos separados por comas (ej: 10, 15, 23, 12, 18, 10, 14, 20):", 
+            "10, 15, 23, 12, 18, 10, 14, 20",
+            key="input_texto_datos"
+        )
+        tipo_grafico = st.selectbox(
+            "Elige el tipo de gráfico:", 
+            ["Histograma", "Gráfico de Líneas", "Diagrama de Caja"],
+            key="select_tipo_grafico"
+        )
+        
+        if st.button("Analizar Datos", key="btn_analizar_datos"):
             try:
-                import numpy as np
-                import pandas as pd
-                import matplotlib.pyplot as plt
-
                 datos = [float(x.strip()) for x in texto_datos.split(",") if x.strip() != ""]
-                df = pd.DataFrame(datos, columns=["Valores"])
-
-                # --- CÁLCULOS NATIVOS CON PANDAS Y NUMPY ---
-                res = {
-                    'Cantidad': len(datos),
-                    'Media': df["Valores"].mean(),
-                    'Mediana': df["Valores"].median(),
-                    'Moda': df["Valores"].mode()[0] if not df["Valores"].mode().empty else datos[0],
-                    'Minimo': df["Valores"].min(),
-                    'Maximo': df["Valores"].max(),
-                    'Rango': df["Valores"].max() - df["Valores"].min(),
-                    'Varianza': df["Valores"].var(ddof=1) if len(datos) > 1 else 0.0,
-                    'Devviacion_Estandar': df["Valores"].std(ddof=1) if len(datos) > 1 else 0.0,
-                    'Q1': df["Valores"].quantile(0.25),
-                    'Q2': df["Valores"].quantile(0.50),
-                    'Q3': df["Valores"].quantile(0.75),
-                    'P10': df["Valores"].quantile(0.10),
-                    'P90': df["Valores"].quantile(0.90)
-                }
-                
-                # Coeficiente de variación
-                res['Coeficiente_Variacion (%)'] = (res['Devviacion_Estandar'] / res['Media'] * 100) if res['Media'] != 0 else 0
-
-                st.success("¡Cálculo descriptivo completado!")
-                col_met1, col_met2, col_met3 = st.columns(3)
-
-                with col_met1:
-                    st.markdown("**Centralización**")
-                    st.write(f"• Cantidad de datos ($N$): `{res['Cantidad']}`")
-                    st.write(f"• Media ($\\bar{{x}}$): `{res['Media']:.4f}`")
-                    st.write(f"• Mediana: `{res['Mediana']}`")
-                    st.write(f"• Moda: `{res['Moda']}`")
-
-                with col_met2:
-                    st.markdown("**Dispersión**")
-                    st.write(f"• Mínimo: `{res['Minimo']}`")
-                    st.write(f"• Máximo: `{res['Maximo']}`")
-                    st.write(f"• Rango: `{res['Rango']}`")
-                    if isinstance(res["Varianza"], float):
-                        st.write(f"• Varianza ($s^2$): `{res['Varianza']:.4f}`")
-                        st.write(f"• Desviación estándar ($s$): `{res['Devviacion_Estandar']:.4f}`")
-                        st.write(f"• Coef. Variación: `{res['Coeficiente_Variacion (%)']:.2f}%`")
-                    else:
-                        st.write(f"• Varianza: {res['Varianza']}")
-
-                with col_met3:
-                    st.markdown("**Cuartiles y Percentiles**")
-                    st.write(f"• Primer Cuartil ($Q_1$): `{res['Q1']}`")
-                    st.write(f"• Segundo Cuartil ($Q_2$): `{res['Q2']}`")
-                    st.write(f"• Tercer Cuartil ($Q_3$): `{res['Q3']}`")
-                    st.write(f"• Percentil 10 ($P_{{10}}$): `{res['P10']:.2f}`")
-                    st.write(f"• Percentil 90 ($P_{{90}}$): `{res['P90']:.2f}`")
-
-                fig, ax = plt.subplots(figsize=(7, 3.5))
-                if tipo_grafico == "Histograma":
-                    ax.hist(datos, bins=6, color="#00F5D4", edgecolor="black", alpha=0.8)
-                    ax.set_title("Histograma de Frecuencias", color="white")
-                elif tipo_grafico == "Gráfico de Líneas":
-                    ax.plot(datos, marker="o", color="#9B5DE5", linewidth=2)
-                    ax.set_title("Evolución de los Datos", color="white")
+                if not datos:
+                    st.warning("Por favor, ingresa al menos un dato numérico.")
                 else:
-                    ax.boxplot(datos, vert=False, patch_artist=True,
-                               boxprops=dict(facecolor="#00F5D4", color="white"),
-                               medianprops=dict(color="#9B5DE5", linewidth=2.5),
-                               whiskerprops=dict(color="white"),
-                               capprops=dict(color="white"))
-                    ax.set_title("Gráfico de Caja y Bigotes", color="white") 
-            
-                fig.patch.set_facecolor("#0E1117")
-                ax.set_facecolor("#1E1E24")
-                ax.tick_params(colors="white")
-                ax.grid(color="#333333", linestyle=":", alpha=0.5)
-                st.pyplot(fig)
+                    res = estadistica.descriptiva(datos)
+                    st.success("¡Cálculo descriptivo completado!")
+                    col_met1, col_met2, col_met3 = st.columns(3)
+
+                    with col_met1:
+                        st.markdown("**Centralización**")
+                        st.write(f"• Cantidad de datos ($N$): `{res['Cantidad']}`")
+                        st.write(f"• Media ($\\bar{{x}}$): `{res['Media']:.4f}`")
+                        st.write(f"• Mediana: `{res['Mediana']}`")
+                        st.write(f"• Moda: `{res['Moda']}`")
+
+                    with col_met2:
+                        st.markdown("**Dispersión**")
+                        st.write(f"• Mínimo: `{res['Minimo']}`")
+                        st.write(f"• Máximo: `{res['Maximo']}`")
+                        st.write(f"• Rango: `{res['Rango']}`")
+                        
+                        if isinstance(res["Varianza"], float):
+                            st.write(f"• Varianza ($s^2$): `{res['Varianza']:.4f}`")
+                        else:
+                            st.write(f"• Varianza: `{res['Varianza']}`")
+                            
+                        if isinstance(res["Desviacion_Estandar"], float):
+                            st.write(f"• Desviación estándar ($s$): `{res['Desviacion_Estandar']:.4f}`")
+                        else:
+                            st.write(f"• Desviación estándar: `{res['Desviacion_Estandar']}`")
+                            
+                        if isinstance(res["Coeficiente_Variacion (%)"], float):
+                            st.write(f"• Coef. Variación: `{res['Coeficiente_Variacion (%)']:.2f}%`")
+                        else:
+                            st.write(f"• Coef. Variación: `{res['Coeficiente_Variacion (%)']}`")
+
+                    with col_met3:
+                        st.markdown("**Cuartiles y Percentiles**")
+                        st.write(f"• Primer Cuartil ($Q_1$): `{res['Q1']}`")
+                        st.write(f"• Segundo Cuartil ($Q_2$): `{res['Q2']}`")
+                        st.write(f"• Tercer Cuartil ($Q_3$): `{res['Q3']}`")
+                        st.write(f"• Percentil 10 ($P_{{10}}$): `{res['P10']:.2f}`")
+                        st.write(f"• Percentil 90 ($P_{{90}}$): `{res['P90']:.2f}`")
+
+                    fig, ax = plt.subplots(figsize=(7, 3.5))
+                    if tipo_grafico == "Histograma":
+                        ax.hist(datos, bins=6, color="#00F5D4", edgecolor="black", alpha=0.8)
+                        ax.set_title("Histograma de Frecuencias", color="white")
+                    elif tipo_grafico == "Gráfico de Líneas":
+                        ax.plot(datos, marker="o", color="#9B5DE5", linewidth=2)
+                        ax.set_title("Evolución de los Datos", color="white")
+                    else:
+                        ax.boxplot(datos, vert=False, patch_artist=True,
+                                   boxprops=dict(facecolor="#00F5D4", color="white"),
+                                   medianprops=dict(color="#9B5DE5", linewidth=2.5),
+                                   whiskerprops=dict(color="white"),
+                                   capprops=dict(color="white"))
+                        ax.set_title("Gráfico de Caja y Bigotes", color="white") 
+                
+                    fig.patch.set_facecolor("#0E1117")
+                    ax.set_facecolor("#1E1E24")
+                    ax.tick_params(colors="white")
+                    ax.grid(color="#333333", linestyle=":", alpha=0.5)
+                    st.pyplot(fig)
             except Exception as e:
                 st.error(f"Error calculando estadísticas descriptivas: {e}")
 
-            with tab_prob:
-                st.subheader("Modelado de Distribuciones de Probabilidad")
-                tipo_dist = st.radio("Elige la distribución:", ["Normal Continua", "Binomial Discreta"])
+    with tab_prob:
+        st.subheader("Modelado de Distribuciones de Probabilidad")
+        tipo_dist = st.radio("Elige la distribución:", ["Normal Continua", "Binomial Discreta"], key="radio_tipo_dist")
 
         if tipo_dist == "Normal Continua":
             col_norm = st.columns(4)
-            mu = col_norm[0].number_input("Media (mu)", value=0.0)
-            sigma = col_norm[1].number_input("Desv. Estandár (sigma)", value=1.0, min_value=0.01)
-            x_val = col_norm[2].number_input("Valor X a evaluar", value=1.0)
-            op_norm = col_norm[3].selectbox("Operación:", ["<= ", ">= "])
+            mu = col_norm[0].number_input("Media (mu)", value=0.0, key="norm_mu")
+            sigma = col_norm[1].number_input("Desv. Estándar (sigma)", value=1.0, min_value=0.01, key="norm_sigma")
+            x_val = col_norm[2].number_input("Valor X a evaluar", value=1.0, key="norm_x")
+            op_norm = col_norm[3].selectbox("Operación:", ["<= ", ">= "], key="norm_op")
 
-            if st.button("Calcular Probabilidad Normal"):
-                from scipy.stats import norm
-                
-                # Cálculo nativo de la distribución normal para sustituir el viejo método
-                if op_norm.strip() == "<=":
-                    probabilidad = norm.cdf(x_val, mu, sigma)
-                    formula_latex = f"P(X \\le {x_val})"
-                else:
-                    probabilidad = 1 - norm.cdf(x_val, mu, sigma)
-                    formula_latex = f"P(X \\ge {x_val})"
-                
-                st.success(f"Probabilidad Hallada: {probabilidad:.6f}")
-                st.latex(f"{formula_latex} = {probabilidad:.6f}")
-
-                # Gráfica nativa de la campana
-                fig, ax = plt.subplots(figsize=(7, 3.5))
-                x_axis = np.linspace(mu - 4*sigma, mu + 4*sigma, 500)
-                ax.plot(x_axis, norm.pdf(x_axis, mu, sigma), color="#9B5DE5", linewidth=2)
-                
-                if op_norm.strip() == "<=":
-                    x_fill = np.linspace(mu - 4*sigma, x_val, 200)
-                else:
-                    x_fill = np.linspace(x_val, mu + 4*sigma, 200)
+            if st.button("Calcular Probabilidad Normal", key="btn_calc_normal"):
+                try:
+                    res_norm = estadistica.analizar_distribucion_normal(mu, sigma, x_val, op_norm.strip())
+                    st.success(f"Probabilidad Hallada: {res_norm['Probabilidad']:.6f}")
+                    st.latex(f"{res_norm['Titulo_Formula']} = {res_norm['Probabilidad']:.6f}")
+                    st.pyplot(res_norm["Fig"])
+                except Exception as e:
+                    st.error(f"Error en distribución normal: {e}")
                     
-                ax.fill_between(x_fill, norm.pdf(x_fill, mu, sigma), color="#00F5D4", alpha=0.5)
-                fig.patch.set_facecolor("#0E1117")
-                ax.set_facecolor("#1E1E24")
-                ax.tick_params(colors="white")
-                st.pyplot(fig)
+        elif tipo_dist == "Binomial Discreta":
+            col_bin = st.columns(4)
+            n_bin = col_bin[0].number_input("Ensayos (n)", value=10, min_value=1, step=1, key="bin_n")
+            p_bin = col_bin[1].number_input("Prob. Éxito (p)", value=0.5, min_value=0.0, max_value=1.0, step=0.05, key="bin_p")
+            k_bin = col_bin[2].number_input("Éxitos (k)", value=5, min_value=0, max_value=int(n_bin), step=1, key="bin_k")
+            op_bin = col_bin[3].selectbox("Operación:", ["=", "<=", ">="], key="bin_op")
+            
+            if st.button("Calcular Probabilidad Binomial", key="btn_calc_binomial"):
+                try:
+                    res_bin = estadistica.analizar_distribucion_binomial(int(n_bin), p_bin, int(k_bin), op_bin)
+                    st.success(f"Probabilidad Hallada: {res_bin['Probabilidad']:.6f}")
+                    st.latex(f"{res_bin['Titulo_Formula']} = {res_bin['Probabilidad']:.6f}")
+                    st.pyplot(res_bin["Fig"])
+                except Exception as e:
+                    st.error(f"Error en distribución binomial: {e}")
+
 # ----------------- 4. GEOMETRÍA Y TRIGONOMETRÍA -----------------
-elif rama_seleccionada == "🏛️ Geometría y Trigonometría":
+elif rama_seleccionada == "📐 Geometría y Trigonometría":
     tab_analitica, tab_triangulos, tab_trig, tab_ondas = st.tabs([
         "📏 Geometría Analítica",
         "📐 Solucionador de Triángulos",
@@ -950,6 +982,37 @@ elif rama_seleccionada == "💵 Matemática Financiera":
 
 
 # ----------------- 7. OPTIMIZACIÓN (P. LINEAL) -----------------
-if rama_seleccionada == "⚙️ Optimización (P. Lineal)":
+elif rama_seleccionada == "🎯 Optimización (Programación Lineal)":
     from optimizacion_app import mostrar_optimizacion
     mostrar_optimizacion()
+
+
+# ================= CONSOLA DE RAZONAMIENTO DEL AGENTE (GEMINI) =================
+st.write("---")
+with st.expander("🤖 Consola del Agente de Razonamiento Gemini", expanded=False):
+    st.markdown("### Haz una consulta al Agente sobre esta área de estudio:")
+    
+    tema = "matemáticas generales" if rama_seleccionada == "🏠 Inicio" else rama_seleccionada[2:]
+    st.write(f"El agente analizará tu ejercicio en el contexto de: **{tema}**")
+    
+    pregunta_usuario = st.text_area(
+        "Describe tu ejercicio o problema matemático aquí:", 
+        placeholder="Ejemplo: Resuelve el sistema de ecuaciones 2x + y = 5, x - y = 1 paso a paso.",
+        key="pregunta_agente"
+    )
+    
+    if st.button("Consultar al Agente", key="btn_consultar_agente"):
+        if not pregunta_usuario.strip():
+            st.warning("Por favor, escribe una pregunta.")
+        elif not user_api_key:
+            st.error("Por favor, ingresa tu Gemini API Key en la barra lateral para activar el agente.")
+        else:
+            with st.spinner("El Agente está pensando..."):
+                try:
+                    respuesta = ia.responder(pregunta_usuario, api_key=user_api_key, tema=tema)
+                    st.markdown("#### 💻 Respuesta del Agente:")
+                    st.markdown(f'<div class="agent-console">', unsafe_allow_html=True)
+                    st.markdown(respuesta)
+                    st.markdown(f'</div>', unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Error al consultar el agente: {e}")

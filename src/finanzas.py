@@ -103,3 +103,64 @@ def evaluar_proyecto_van_tir(inversion_inicial, flujos, tasa_descuento):
         "Detalle_Flujos": detalle_flujos,
         "Decision": decision
     }
+
+
+def amortizacion_gradiente_aritmetico(capital, tasa_nominal, meses_plazo, gradiente_valor, es_creciente=True):
+    tasa_mensual = (tasa_nominal / 100) / 12
+    signo = 1 if es_creciente else -1
+    
+    if tasa_mensual > 0:
+        S1 = sum((1 + tasa_mensual) ** (-t) for t in range(1, meses_plazo + 1))
+        S2 = sum((t - 1) * (1 + tasa_mensual) ** (-t) for t in range(1, meses_plazo + 1))
+    else:
+        S1 = meses_plazo
+        S2 = meses_plazo * (meses_plazo - 1) / 2
+        
+    a1 = (capital - signo * gradiente_valor * S2) / S1
+    
+    tabla = []
+    saldo = capital
+    for mes in range(1, meses_plazo + 1):
+        cuota = a1 + signo * (mes - 1) * gradiente_valor
+        interes = saldo * tasa_mensual
+        amortizacion_capital = cuota - interes
+        saldo -= amortizacion_capital
+        tabla.append({
+            "Mes": mes,
+            "Cuota": round(cuota, 2),
+            "Interés": round(interes, 2),
+            "Amortización": round(amortizacion_capital, 2),
+            "Saldo_Restante": round(max(0.0, saldo), 2)
+        })
+    return tabla, a1
+
+
+def amortizacion_gradiente_geometrico(capital, tasa_nominal, meses_plazo, gradiente_porcentaje, es_creciente=True):
+    tasa_mensual = (tasa_nominal / 100) / 12
+    g = gradiente_porcentaje / 100
+    signo_g = 1 + g if es_creciente else 1 - g
+    
+    S = sum((signo_g ** (t - 1)) / ((1 + tasa_mensual) ** t) for t in range(1, meses_plazo + 1))
+    a1 = capital / S
+    
+    tabla = []
+    saldo = capital
+    for mes in range(1, meses_plazo + 1):
+        cuota = a1 * (signo_g ** (mes - 1))
+        interes = saldo * tasa_mensual
+        amortizacion_capital = cuota - interes
+        saldo -= amortizacion_capital
+        tabla.append({
+            "Mes": mes,
+            "Cuota": round(cuota, 2),
+            "Interés": round(interes, 2),
+            "Amortización": round(amortizacion_capital, 2),
+            "Saldo_Restante": round(max(0.0, saldo), 2)
+        })
+    return tabla, a1
+
+
+def evaluar_proyecto(inversion_inicial, flujos, tasa_descuento):
+    res = evaluar_proyecto_van_tir(inversion_inicial, flujos, tasa_descuento)
+    return res["VAN"], res["TIR"], res["Detalle_Flujos"]
+

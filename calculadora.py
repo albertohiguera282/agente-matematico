@@ -200,6 +200,29 @@ def _mem_limpiar():
 def mostrar_calculadora():
     _init_state()
 
+    # CSS responsivo: botones más compactos solo en pantallas angostas (móvil),
+    # sin reducir el área táctil en desktop.
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stButton"] > button {
+            padding: 0.35rem 0.4rem;
+            font-size: 0.95rem;
+            min-height: 2.4rem;
+        }
+        @media (max-width: 640px) {
+            div[data-testid="stButton"] > button {
+                padding: 0.25rem 0.15rem;
+                font-size: 0.8rem;
+                min-height: 2.6rem;
+                line-height: 1.1rem;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.markdown("### 🧮 Calculadora Científica")
     st.caption(
         "Funciones operacionales completas + cajón amplio de historial, "
@@ -216,77 +239,80 @@ def mostrar_calculadora():
 
 
 def _tab_calculadora():
-    col_calc, col_hist = st.columns([1.3, 1])
+    # ---------------- CALCULADORA (ancho completo, apilado para móvil) ----------------
+    modo_angulo = st.radio(
+        "Modo angular", ["Grados", "Radianes"], horizontal=True, key="calc_modo_angulo"
+    )
 
-    # ---------------- COLUMNA CALCULADORA ----------------
-    with col_calc:
-        modo_angulo = st.radio(
-            "Modo angular", ["Grados", "Radianes"], horizontal=True, key="calc_modo_angulo"
-        )
+    st.text_input(
+        "Display",
+        key="calc_expr",
+        label_visibility="collapsed",
+        placeholder="Escribe o usa los botones (ej: sin(30)+sqrt(16))",
+    )
 
-        st.text_input(
-            "Display",
-            key="calc_expr",
-            label_visibility="collapsed",
-            placeholder="Escribe o usa los botones (ej: sin(30)+sqrt(16))",
-        )
+    if isinstance(st.session_state.calc_ultimo_resultado, (int, float)):
+        st.markdown(f"**= {st.session_state.calc_ultimo_resultado}**")
+    elif isinstance(st.session_state.calc_ultimo_resultado, str):
+        st.error(st.session_state.calc_ultimo_resultado)
 
-        if isinstance(st.session_state.calc_ultimo_resultado, (int, float)):
-            st.markdown(f"**= {st.session_state.calc_ultimo_resultado}**")
-        elif isinstance(st.session_state.calc_ultimo_resultado, str):
-            st.error(st.session_state.calc_ultimo_resultado)
+    # Fila de memoria
+    m1, m2, m3, m4 = st.columns(4)
+    m1.button("MC", use_container_width=True, on_click=_mem_limpiar)
+    m2.button("MR", use_container_width=True, on_click=_mem_recuperar)
+    m3.button("M+", use_container_width=True, on_click=_mem_mas)
+    m4.button("M-", use_container_width=True, on_click=_mem_menos)
 
-        # Fila de memoria
-        m1, m2, m3, m4 = st.columns(4)
-        m1.button("MC", use_container_width=True, on_click=_mem_limpiar)
-        m2.button("MR", use_container_width=True, on_click=_mem_recuperar)
-        m3.button("M+", use_container_width=True, on_click=_mem_mas)
-        m4.button("M-", use_container_width=True, on_click=_mem_menos)
+    # Fila de funciones científicas (máx. 3 por fila: nombres largos, mejor en móvil)
+    filas_funciones = [
+        ["sin(", "cos(", "tan("],
+        ["asin(", "acos(", "atan("],
+        ["ln(", "log(", "exp("],
+        ["sqrt(", "cbrt(", "^"],
+        ["comb(", "perm(", "abs("],
+        ["π", "e", "!"],
+        ["(", ")", "%"],
+    ]
+    simbolo_a_token = {"π": "pi", "!": "factorial("}
+    for fila in filas_funciones:
+        cols = st.columns(len(fila))
+        for c, simbolo in zip(cols, fila):
+            token = simbolo_a_token.get(simbolo, simbolo)
+            c.button(simbolo, key=f"btn_{simbolo}", use_container_width=True,
+                     on_click=_insertar, args=(token,))
 
-        # Fila de funciones científicas
-        filas_funciones = [
-            ["sin(", "cos(", "tan(", "π", "e"],
-            ["asin(", "acos(", "atan(", "ln(", "log("],
-            ["sqrt(", "cbrt(", "^", "exp(", "!"],
-            ["(", ")", "comb(", "perm(", "abs("],
-        ]
-        simbolo_a_token = {"π": "pi", "!": "factorial("}
-        for fila in filas_funciones:
-            cols = st.columns(len(fila))
-            for c, simbolo in zip(cols, fila):
-                token = simbolo_a_token.get(simbolo, simbolo)
-                c.button(simbolo, key=f"btn_{simbolo}", use_container_width=True,
-                         on_click=_insertar, args=(token,))
-
-        # Teclado numérico + operadores
-        filas_numeros = [
-            ["7", "8", "9", "/"],
-            ["4", "5", "6", "*"],
-            ["1", "2", "3", "-"],
-            ["0", ".", "%", "+"],
-        ]
-        for fila in filas_numeros:
-            cols = st.columns(4)
-            for c, simbolo in zip(cols, fila):
+    # Teclado numérico + operadores
+    filas_numeros = [
+        ["7", "8", "9", "/"],
+        ["4", "5", "6", "*"],
+        ["1", "2", "3", "-"],
+        ["0", ".", "+", "="],
+    ]
+    for fila in filas_numeros:
+        cols = st.columns(4)
+        for c, simbolo in zip(cols, fila):
+            if simbolo == "=":
+                c.button("=", key="btn_num_igual", type="primary",
+                         use_container_width=True, on_click=_calcular, args=(modo_angulo,))
+            else:
                 c.button(simbolo, key=f"btn_num_{simbolo}", use_container_width=True,
                          on_click=_insertar, args=(simbolo,))
 
-        b1, b2, b3 = st.columns(3)
-        b1.button("⌫ Borrar", use_container_width=True, on_click=_borrar_ultimo)
-        b2.button("C Limpiar", use_container_width=True, on_click=_limpiar)
-        b3.button("= Calcular", type="primary", use_container_width=True,
-                  on_click=_calcular, args=(modo_angulo,))
+    b1, b2 = st.columns(2)
+    b1.button("⌫ Borrar", use_container_width=True, on_click=_borrar_ultimo)
+    b2.button("C Limpiar", use_container_width=True, on_click=_limpiar)
 
-    # ---------------- COLUMNA "CAJÓN AMPLIO" (HISTORIAL) ----------------
-    with col_hist:
-        st.markdown("#### 🧾 Historial (cajón amplio)")
+    # ---------------- HISTORIAL ("CAJÓN AMPLIO"), ANCHO COMPLETO ----------------
+    st.markdown("---")
+    with st.expander("🧾 Historial (cajón amplio)", expanded=True):
         if not st.session_state.calc_historial:
             st.info("Aún no hay cálculos. El historial se llenará aquí.")
         else:
             for i, (expr, resultado) in enumerate(st.session_state.calc_historial):
                 with st.container(border=True):
                     st.markdown(f"`{expr}` → **{resultado}**")
-                    if st.button("🤖 Explicar con IA", key=f"explicar_{i}"):
+                    if st.button("🤖 Explicar con IA", key=f"explicar_{i}",
+                                 use_container_width=True):
                         api_key = ia.cargar_api_key() or st.session_state.get("user_api_key")
                         if not api_key:
                             st.warning(
@@ -309,7 +335,7 @@ def _tab_calculadora():
                                 except Exception as e:
                                     st.error(f"Error al consultar el agente: {e}")
 
-            if st.button("🗑️ Vaciar historial"):
+            if st.button("🗑️ Vaciar historial", use_container_width=True):
                 st.session_state.calc_historial = []
                 st.rerun()
 

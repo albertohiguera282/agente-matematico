@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 import algebra
+import calculadora
 import calculo
 import estadistica
 import finanzas
@@ -187,6 +188,7 @@ rama_seleccionada = st.sidebar.radio(
     "Selecciona la rama a trabajar:",
     [
         "🏠 Inicio",
+        "🧮 Calculadora Científica",
         "🔢 Álgebra Universitaria",
         "📈 Cálculo Diferencial e Integral",
         "📊 Estadística y Probabilidad",
@@ -261,6 +263,12 @@ if rama_seleccionada == "🏠 Inicio":
         """, unsafe_allow_html=True)
 
 # ----------------- 1. ÁLGEBRA UNIVERSITARIA -----------------
+# ----------------- 0.5 CALCULADORA CIENTIFICA -----------------
+elif rama_seleccionada == "🧮 Calculadora Científica":
+    st.session_state["user_api_key"] = user_api_key
+    calculadora.mostrar_calculadora()
+
+# ----------------- 1. ALGEBRA UNIVERSITARIA -----------------
 elif rama_seleccionada == "🔢 Álgebra Universitaria":
     tab_matrices, tab_sistemas, tab_polinomios = st.tabs([
         "🧮 Operaciones Matriciales",
@@ -1015,4 +1023,4 @@ with st.expander("🤖 Consola del Agente de Razonamiento Gemini", expanded=Fals
                     st.markdown(respuesta)
                     st.markdown(f'</div>', unsafe_allow_html=True)
                 except Exception as e:
-                    st.error(f"Error al consultar el agente: {e}")
+                    st.error(f"Error al consultar el agente: {e}")

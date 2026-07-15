@@ -1,8 +1,11 @@
+
 # -*- coding: utf-8 -*-
 """
 Database of statistical models, assumptions, justifications, and code templates.
 Generates 300+ models programmatically for academic research.
 """
+
+from lote1_models import LOTE_1_MODELS
 
 # Modules definition
 MODULES = [
@@ -274,6 +277,8 @@ run;"""
         }
     }
 }
+
+CORE_MODELS.update(LOTE_1_MODELS)
 
 # Helper definition of other non-core base models to generate the 300+ catalog
 BASE_MODELS_LIST = [

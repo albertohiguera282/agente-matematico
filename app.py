@@ -3,6 +3,11 @@
 Main Streamlit application for 'Consultor Inteligente de Modelos Estadísticos'.
 """
 
+# Hola
+
+
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -13,6 +18,21 @@ import advisor
 import calculator
 import data_processor
 import tests
+import string
+
+class _SafeDict(dict):
+    """Si falta una clave al formatear, devuelve la llave tal cual
+    (ej. '{media}') en lugar de lanzar KeyError."""
+    def __missing__(self, key):
+        return "{" + key + "}"
+
+def safe_format(template_str, **kwargs):
+    """Reemplazo seguro de str.format() que nunca lanza KeyError.
+    Cualquier placeholder no reconocido se deja intacto en el texto."""
+    try:
+        return string.Formatter().vformat(template_str, (), _SafeDict(**kwargs))
+    except Exception:
+        return template_str
 
 # Configure Streamlit page
 st.set_page_config(
@@ -467,7 +487,7 @@ elif st.session_state.selected_tab == "Biblioteca de Modelos":
                             # Render code block
                             template_code = m["templates"][lang]
                             # Clean print placeholders for formatting visual blocks
-                            formatted_code = template_code.format(
+                            formatted_code = safe_format(template_code,
                                 csv_file=st.session_state.csv_name,
                                 var="Variable",
                                 group_var="Grupo",
@@ -973,18 +993,20 @@ elif st.session_state.selected_tab == "Calculadora Analítica":
             for c_tab, lang in zip(code_tabs, langs):
                 with c_tab:
                     raw_template = db_model["templates"][lang]
-                    
+
                     # Fill default parameters if manual inputs were used
                     csv_val = csv_path if data_source != "Ingresar datos manualmente" else "datos.csv"
-                    
+
                     try:
                         if db_model_id == "arithmetic_mean":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 var=u_vars.get("var", "Variable")
                             )
                         elif db_model_id == "independent_ttest":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 dep_var=u_vars.get("dep_var", "Dependiente"),
                                 group_var=u_vars.get("group_var", "Grupo"),
@@ -992,32 +1014,36 @@ elif st.session_state.selected_tab == "Calculadora Analítica":
                                 group2=u_vars.get("group2", "B")
                             )
                         elif db_model_id == "paired_ttest":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 var1=u_vars.get("var1", "Pre"),
                                 var2=u_vars.get("var2", "Post")
                             )
                         elif db_model_id == "chi_squared_test":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 var1=u_vars.get("var1", "VarCategórica1"),
                                 var2=u_vars.get("var2", "VarCategórica2")
                             )
                         elif db_model_id == "simple_regression":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 x_var=u_vars.get("x_var", "X_Predictora"),
                                 y_var=u_vars.get("y_var", "Y_Respuesta")
                             )
                         elif db_model_id == "oneway_anova":
-                            filled_code = raw_template.format(
+                            filled_code = safe_format(
+                                raw_template,
                                 csv_file=csv_val,
                                 dep_var=u_vars.get("dep_var", "Dependiente"),
                                 group_var=u_vars.get("group_var", "Factor")
                             )
                     except Exception:
-                        # Fallback to default format if something fails
-                        filled_code = raw_template.format(
+                        filled_code = safe_format(
+                            raw_template,
                             csv_file="datos.csv",
                             var="Variable",
                             group_var="Grupo",
@@ -1029,5 +1055,5 @@ elif st.session_state.selected_tab == "Calculadora Analítica":
                             x_var="X_Predictora",
                             y_var="Y_Respuesta"
                         )
-                        
+
                     st.code(filled_code, language=lang)

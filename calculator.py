@@ -24,7 +24,7 @@ def calculate_descriptive(data):
         n_num = len(s_num)
         if n_num < 2:
             return {"error": "Se requieren al menos 2 valores válidos para análisis numérico."}
-            
+
         mean = float(s_num.mean())
         median = float(s_num.median())
         

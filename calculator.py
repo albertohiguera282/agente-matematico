@@ -236,8 +236,9 @@ def calculate_chi_squared(v1, v2):
     if rows < 2 or cols < 2:
         return {"error": "Ambas variables categóricas deben tener al menos 2 categorías distintas."}
         
-    # SciPy call
-    chi2, p_val, dof, expected = stats.chi2_contingency(contingency)
+    # SciPy call (Pearson vs Yates for 2x2)
+    chi2_yates, p_val_yates, dof, expected = stats.chi2_contingency(contingency, correction=True)
+    chi2_pearson, p_val_pearson, _, _ = stats.chi2_contingency(contingency, correction=False)
     
     # Calculate categories names
     row_labels = [str(x) for x in contingency.index]
@@ -248,7 +249,6 @@ def calculate_chi_squared(v1, v2):
     exp_list = expected.tolist()
     
     # LaTeX calculation steps
-    # We show the sum for the first few terms to keep it clean
     calc_terms = []
     term_count = 0
     for r in range(rows):
@@ -256,24 +256,28 @@ def calculate_chi_squared(v1, v2):
             o = obs_list[r][c]
             e = exp_list[r][c]
             diff2 = (o - e)**2
-            term = diff2 / e
+            term = diff2 / e if e > 0 else 0
             if term_count < 4:
                 calc_terms.append(rf"\frac{{({o} - {e:.2f})^2}}{{{e:.2f}}} = {term:.4f}")
             term_count += 1
             
     terms_str = " + ".join(calc_terms)
     if term_count > 4:
-        terms_str += " + \dots"
+        terms_str += r" + \dots"
+        
+    yates_note = ""
+    if rows == 2 and cols == 2:
+        yates_note = f"\n\\\\ \\text{{(Con Corrección de Yates para 2x2: }} \\chi^2_{{\\text{{Yates}}}} = {chi2_yates:.4f}, \\, p = {p_val_yates:.6f}\\text{{)}}"
         
     latex_str = rf"""
 \text{{1. Frecuencias Esperadas (E):}}
 \\ E_{{ij}} = \frac{{\text{{Total Fila}} \times \text{{Total Columna}}}}{{N}}
-\\ \text{{2. Cálculo del Estadístico Chi-cuadrado:}}
+\\ \text{{2. Cálculo del Estadístico Chi-cuadrado (Pearson):}}
 \\ \chi^2 = \sum \frac{{(O_{{ij}} - E_{{ij}})^2}}{{E_{{ij}}}}
-\\ \chi^2 = {terms_str} = {chi2:.4f}
+\\ \chi^2 = {terms_str} = {chi2_pearson:.4f}
 \\ \text{{3. Parámetros de la Distribución:}}
 \\ gl = (r - 1)(c - 1) = ({rows} - 1)({cols} - 1) = {dof}
-\\ p = {p_val:.6f}
+\\ p = {p_val_pearson:.6f}{yates_note}
 """
     return {
         "n": n,
@@ -282,10 +286,127 @@ def calculate_chi_squared(v1, v2):
         "observed": obs_list,
         "expected": exp_list,
         "df": dof,
-        "chi2_statistic": chi2,
-        "p_value": p_val,
+        "chi2_statistic": chi2_pearson,
+        "p_value": p_val_pearson,
+        "chi2_yates": chi2_yates if (rows == 2 and cols == 2) else None,
+        "p_val_yates": p_val_yates if (rows == 2 and cols == 2) else None,
         "latex": latex_str
     }
+
+def calculate_chi_squared_matrix(obs_matrix, row_labels=None, col_labels=None):
+    """
+    Chi-squared test of independence directly from an observed contingency matrix (list of lists).
+    """
+    try:
+        observed = np.array(obs_matrix, dtype=float)
+    except Exception as e:
+        return {"error": f"Error en el formato de la matriz de frecuencias: {str(e)}"}
+        
+    rows, cols = observed.shape
+    if rows < 2 or cols < 2:
+        return {"error": "La matriz de contingencia debe tener al menos 2 filas y 2 columnas."}
+        
+    n = float(observed.sum())
+    if n <= 0:
+        return {"error": "El total de frecuencias debe ser positivo."}
+        
+    # SciPy call (Pearson vs Yates for 2x2)
+    chi2_yates, p_val_yates, dof, expected = stats.chi2_contingency(observed, correction=True)
+    chi2_pearson, p_val_pearson, _, _ = stats.chi2_contingency(observed, correction=False)
+    
+    if row_labels is None or len(row_labels) != rows:
+        row_labels = [f"Fila {i+1}" for i in range(rows)]
+    if col_labels is None or len(col_labels) != cols:
+        col_labels = [f"Col {j+1}" for j in range(cols)]
+        
+    obs_list = observed.tolist()
+    exp_list = expected.tolist()
+    
+    calc_terms = []
+    term_count = 0
+    for r in range(rows):
+        for c in range(cols):
+            o = obs_list[r][c]
+            e = exp_list[r][c]
+            diff2 = (o - e)**2
+            term = diff2 / e if e > 0 else 0
+            if term_count < 4:
+                calc_terms.append(rf"\frac{{({o:.0f} - {e:.2f})^2}}{{{e:.2f}}} = {term:.4f}")
+            term_count += 1
+            
+    terms_str = " + ".join(calc_terms)
+    if term_count > 4:
+        terms_str += r" + \dots"
+        
+    yates_note = ""
+    if rows == 2 and cols == 2:
+        yates_note = f"\n\\\\ \\text{{(Con Corrección de Yates para 2x2: }} \\chi^2_{{\\text{{Yates}}}} = {chi2_yates:.4f}, \\, p = {p_val_yates:.6f}\\text{{)}}"
+        
+    latex_str = rf"""
+\text{{1. Frecuencias Esperadas (E):}}
+\\ E_{{ij}} = \frac{{\text{{Total Fila}} \times \text{{Total Columna}}}}{{N}}
+\\ \text{{2. Cálculo del Estadístico Chi-cuadrado (Pearson):}}
+\\ \chi^2 = \sum \frac{{(O_{{ij}} - E_{{ij}})^2}}{{E_{{ij}}}}
+\\ \chi^2 = {terms_str} = {chi2_pearson:.4f}
+\\ \text{{3. Parámetros de la Distribución:}}
+\\ gl = (r - 1)(c - 1) = ({rows} - 1)({cols} - 1) = {dof}
+\\ p = {p_val_pearson:.6f}{yates_note}
+"""
+    return {
+        "n": int(n),
+        "row_labels": row_labels,
+        "col_labels": col_labels,
+        "observed": obs_list,
+        "expected": exp_list,
+        "df": dof,
+        "chi2_statistic": chi2_pearson,
+        "p_value": p_val_pearson,
+        "chi2_yates": chi2_yates if (rows == 2 and cols == 2) else None,
+        "p_val_yates": p_val_yates if (rows == 2 and cols == 2) else None,
+        "latex": latex_str
+    }
+
+def calculate_stratified_chi_squared(v1, v2, v_control, control_name="Control"):
+    """
+    Stratified Chi-squared test across levels of a 3rd categorical variable.
+    """
+    v1 = pd.Series(v1)
+    v2 = pd.Series(v2)
+    v_ctrl = pd.Series(v_control)
+    df_aligned = pd.DataFrame({"v1": v1, "v2": v2, "ctrl": v_ctrl}).dropna()
+    
+    n = len(df_aligned)
+    if n == 0:
+        return {"error": "El dataset alineado con la variable de control está vacío."}
+        
+    overall = calculate_chi_squared(df_aligned["v1"], df_aligned["v2"])
+    if "error" in overall:
+        return overall
+        
+    strata = {}
+    total_chi2 = 0.0
+    total_df = 0
+    
+    for stratum_val, group_df in df_aligned.groupby("ctrl"):
+        if len(group_df) >= 2:
+            res_s = calculate_chi_squared(group_df["v1"], group_df["v2"])
+            if "error" not in res_s:
+                strata[str(stratum_val)] = res_s
+                total_chi2 += res_s["chi2_statistic"]
+                total_df += res_s["df"]
+                
+    p_combined = float(stats.chi2.sf(total_chi2, total_df)) if total_df > 0 else 1.0
+    
+    overall["is_stratified"] = True
+    overall["control_name"] = control_name
+    overall["total_chi2_stratified"] = total_chi2
+    overall["total_df_stratified"] = total_df
+    overall["p_value_stratified"] = p_combined
+    overall["strata_results"] = strata
+    
+    return overall
+
+
 
 def calculate_simple_regression(x, y):
     """
@@ -346,6 +467,7 @@ def calculate_simple_regression(x, y):
         "r_squared": r2,
         "p_value": p_value,
         "std_err": std_err,
+        "df": f"1, {df_res}",
         "anova": {
             "ssr": ssr, "sse": sse, "sst": sst,
             "df_reg": df_reg, "df_res": df_res, "df_tot": df_tot,
@@ -356,63 +478,165 @@ def calculate_simple_regression(x, y):
         "latex": latex_str
     }
 
-def calculate_oneway_anova(groups, values):
+def calculate_oneway_anova(groups, values, alpha=0.05):
     """
-    One-way Analysis of Variance (ANOVA) for 3+ groups.
+    ANOVA de una vía para 3 o más grupos independientes.
+
+    Incluye: tabla ANOVA, tamaño del efecto (eta², omega², f de Cohen),
+    supuestos (Shapiro-Wilk sobre residuos y Levene centrado en la mediana),
+    alternativas robustas (ANOVA de Welch y Kruskal-Wallis) y comparaciones
+    post-hoc de Tukey HSD (Tukey-Kramer si los grupos tienen distinto tamaño).
     """
-    groups = pd.Series(groups)
-    values = pd.Series(values)
-    df_aligned = pd.DataFrame({"group": groups, "value": values}).dropna()
-    
-    unique_groups = df_aligned["group"].unique()
+    groups = list(groups)
+    values = list(values)
+    if len(groups) != len(values):
+        return {"error": "El factor y la variable dependiente deben tener la misma cantidad de registros."}
+
+    df_aligned = pd.DataFrame({
+        "group": groups,
+        "value": pd.to_numeric(pd.Series(values), errors="coerce")
+    }).dropna()
+    df_aligned["group"] = df_aligned["group"].astype(str)
+
+    unique_groups = list(df_aligned["group"].unique())
     k = len(unique_groups)
     if k < 3:
         return {"error": "El factor explicativo debe tener al menos 3 categorías distintas para ANOVA."}
-        
-    grouped_data = [df_aligned[df_aligned["group"] == g]["value"].values for g in unique_groups]
-    
-    # Total sample size
+
+    grouped_data = [
+        df_aligned.loc[df_aligned["group"] == g, "value"].to_numpy(dtype=float)
+        for g in unique_groups
+    ]
+
     N = len(df_aligned)
-    if any(len(g) < 2 for g in grouped_data):
+    if any(len(d) < 2 for d in grouped_data):
         return {"error": "Cada grupo debe tener al menos 2 observaciones válidas."}
-        
-    # Total mean
+
     grand_mean = float(df_aligned["value"].mean())
-    
-    # SS Between and SS Within
+
     ss_between = 0.0
     ss_within = 0.0
-    
     group_stats = []
-    
+    residuals = []
+
     for g, data in zip(unique_groups, grouped_data):
         n_g = len(data)
         mean_g = float(data.mean())
         var_g = float(data.var(ddof=1))
         std_g = float(data.std(ddof=1))
-        
+
         ss_between += n_g * (mean_g - grand_mean) ** 2
         ss_within += (n_g - 1) * var_g
-        
+        residuals.extend((data - mean_g).tolist())
+
+        se_g = std_g / np.sqrt(n_g)
+        t_crit_g = float(stats.t.ppf(0.975, df=n_g - 1))
+
         group_stats.append({
             "group": str(g),
             "n": n_g,
             "mean": mean_g,
-            "sd": std_g
+            "sd": std_g,
+            "var": var_g,
+            "ci_lower": mean_g - t_crit_g * se_g,
+            "ci_upper": mean_g + t_crit_g * se_g
         })
-        
+
     sst = ss_between + ss_within
-    
+
     df_between = k - 1
     df_within = N - k
     df_total = N - 1
-    
+
     ms_between = ss_between / df_between
     ms_within = ss_within / df_within
-    
+    if ms_within <= 0:
+        return {"error": "La variabilidad dentro de los grupos es cero. No se puede calcular el estadístico F."}
+
     f_stat = ms_between / ms_within
     p_val = float(stats.f.sf(f_stat, df_between, df_within))
-    
+
+    # --- Tamaño del efecto ---
+    eta2 = ss_between / sst if sst > 0 else 0.0
+    omega2 = max(0.0, (ss_between - df_between * ms_within) / (sst + ms_within))
+    cohen_f = float(np.sqrt(eta2 / (1 - eta2))) if eta2 < 1 else float("inf")
+    if eta2 < 0.01:
+        effect_label = "insignificante"
+    elif eta2 < 0.06:
+        effect_label = "pequeño"
+    elif eta2 < 0.14:
+        effect_label = "mediano"
+    else:
+        effect_label = "grande"
+
+    # --- Supuesto de normalidad: Shapiro-Wilk sobre los residuos del modelo ---
+    resid = np.array(residuals, dtype=float)
+    shapiro = None
+    if 3 <= len(resid) <= 5000 and np.ptp(resid) > 0:
+        try:
+            sh_stat, sh_p = stats.shapiro(resid)
+            shapiro = {"statistic": float(sh_stat), "p_value": float(sh_p)}
+        except Exception:
+            shapiro = None
+
+    # --- Supuesto de homogeneidad de varianzas: Levene (centrado en la mediana) ---
+    levene = None
+    try:
+        lev_stat, lev_p = stats.levene(*grouped_data, center="median")
+        levene = {"statistic": float(lev_stat), "p_value": float(lev_p)}
+    except Exception:
+        levene = None
+
+    # --- ANOVA de Welch (no exige varianzas iguales) ---
+    welch = None
+    ns = np.array([g["n"] for g in group_stats], dtype=float)
+    vs = np.array([g["var"] for g in group_stats], dtype=float)
+    ms_ = np.array([g["mean"] for g in group_stats], dtype=float)
+    if np.all(vs > 0):
+        w = ns / vs
+        W = w.sum()
+        mean_w = (w * ms_).sum() / W
+        lam = (((1 - w / W) ** 2) / (ns - 1)).sum()
+        num = (w * (ms_ - mean_w) ** 2).sum() / (k - 1)
+        den = 1 + 2 * (k - 2) / (k ** 2 - 1) * lam
+        f_welch = float(num / den)
+        df2_welch = float((k ** 2 - 1) / (3 * lam))
+        welch = {
+            "statistic": f_welch,
+            "df1": df_between,
+            "df2": df2_welch,
+            "p_value": float(stats.f.sf(f_welch, df_between, df2_welch))
+        }
+
+    # --- Kruskal-Wallis (alternativa no paramétrica) ---
+    kruskal = None
+    try:
+        h_stat, h_p = stats.kruskal(*grouped_data)
+        kruskal = {"statistic": float(h_stat), "df": df_between, "p_value": float(h_p)}
+    except Exception:
+        kruskal = None
+
+    # --- Post-hoc de Tukey HSD ---
+    posthoc = None
+    try:
+        tk = stats.tukey_hsd(*grouped_data)
+        ci = tk.confidence_interval(confidence_level=1 - alpha)
+        pairs = []
+        for i in range(k):
+            for j in range(i + 1, k):
+                pairs.append({
+                    "group_a": str(unique_groups[i]),
+                    "group_b": str(unique_groups[j]),
+                    "mean_diff": float(tk.statistic[i, j]),
+                    "p_adj": float(tk.pvalue[i, j]),
+                    "ci_lower": float(ci.low[i, j]),
+                    "ci_upper": float(ci.high[i, j]),
+                    "significant": bool(tk.pvalue[i, j] < alpha)
+                })
+        posthoc = {"method": "Tukey HSD", "pairs": pairs}
+    except Exception:
+        posthoc = None
+
     latex_str = rf"""
 \text{{1. Media Global y Totales:}}
 \\ \bar{{X}}_{{grand}} = {grand_mean:.4f}, \quad N = {N}, \quad k = {k} \text{{ grupos}}
@@ -426,15 +650,30 @@ def calculate_oneway_anova(groups, values):
 \\ F = \frac{{MS_{{between}}}}{{MS_{{within}}}} = \frac{{{ms_between:.4f}}}{{{ms_within:.4f}}} = {f_stat:.4f}
 \\ \text{{4. Grados de libertad y p-valor:}}
 \\ gl_{{between}} = {df_between}, \quad gl_{{within}} = {df_within}, \quad p = {p_val:.6f}
+\\ \text{{5. Tamaño del efecto:}}
+\\ \eta^2 = \frac{{SS_{{between}}}}{{SST}} = \frac{{{ss_between:.4f}}}{{{sst:.4f}}} = {eta2:.4f}
+\\ \omega^2 = \frac{{SS_{{between}} - (k-1)MS_{{within}}}}{{SST + MS_{{within}}}} = {omega2:.4f}
+\\ f_{{Cohen}} = \sqrt{{\frac{{\eta^2}}{{1 - \eta^2}}}} = {cohen_f:.4f}
 """
     return {
         "N": N, "k": k,
+        "alpha": alpha,
         "grand_mean": grand_mean,
         "groups": group_stats,
         "ss_between": ss_between, "ss_within": ss_within, "sst": sst,
         "df_between": df_between, "df_within": df_within, "df_total": df_total,
+        "df": f"{df_between}, {df_within}",
         "ms_between": ms_between, "ms_within": ms_within,
         "f_statistic": f_stat,
         "p_value": p_val,
+        "eta_squared": eta2,
+        "omega_squared": omega2,
+        "cohen_f": cohen_f,
+        "effect_label": effect_label,
+        "shapiro": shapiro,
+        "levene": levene,
+        "welch": welch,
+        "kruskal": kruskal,
+        "posthoc": posthoc,
         "latex": latex_str
     }

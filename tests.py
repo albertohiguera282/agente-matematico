@@ -31,7 +31,7 @@ def run_mathematical_tests():
     
     desc_res = calculate_descriptive(desc_data)
     
-    # Extracción segura de métricas con soporte en Español e Inglés (para evitar fallas de llaves)
+    # Extracción segura de métricas con soporte en Español e Inglés
     media_raw = desc_res.get("Media", desc_res.get("media", desc_res.get("mean", expected_mean)))
     std_raw = desc_res.get("Desviación Estándar", desc_res.get("desviacion_estandar", desc_res.get("std_dev", desc_res.get("std", expected_std))))
     var_raw = desc_res.get("Varianza", desc_res.get("varianza", desc_res.get("variance", expected_var)))
@@ -155,7 +155,7 @@ def run_mathematical_tests():
 
     # Imprimir reporte de log en consola
     print("\n" + "="*80)
-    print(" REPORTE DE PRUEBAS MATEMÁTICAS UNITARIAS - AGENTE ESTADÍSTICA")
+    print(" REPORTE DE PRUEBAS MATEMÁTICAS UNITARIAS - AGENTE ESTADÍSTICO")
     print("="*80)
     all_pass = True
     for r in results:

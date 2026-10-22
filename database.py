@@ -5,6 +5,7 @@ Database of statistical models, assumptions, justifications, and code templates.
 Generates 300+ models programmatically for academic research.
 """
 
+import pandas as pd
 from lote1_models import LOTE_1_MODELS
 
 # Modules definition
@@ -472,5 +473,83 @@ def get_model_catalog():
             
     return catalog
 
+def get_model_procedure(model):
+    """Devuelve una guía procedimental de 5 pasos para la aplicación del modelo."""
+    m_name = model.get("name", "Modelo Estadístico")
+    m_mod = model.get("module", "general")
+    
+    return [
+        {
+            "step": "Paso 1: Especificación y Formulación de Hipótesis",
+            "desc": f"Definir con precisión el objetivo analítico para {m_name}. Formular la Hipótesis Nula (H₀: No existe efecto / relación o los parámetros son iguales a cero) y la Hipótesis Alternativa (H₁: Existe un efecto estadísticamente relevante)."
+        },
+        {
+            "step": "Paso 2: Verificación Previa de Supuestos Metodológicos",
+            "desc": "Auditar la escala de medición de las variables y verificar los supuestos normativos requeridos: " + ", ".join(model.get("assumptions", ["Independencia de errores", "Medición adecuada"])) + "."
+        },
+        {
+            "step": "Paso 3: Estimación y Ajuste del Modelo",
+            "desc": f"Ejecutar los algoritmos de estimación (por ejemplo, Mínimos Cuadrados Ordinarios OLS, Máxima Verosimilitud ML o Métodos No Paramétricos) en el lenguaje seleccionado (Python, R, SPSS, Stata o SAS) utilizando el conjunto de datos limpio."
+        },
+        {
+            "step": "Paso 4: Evaluación de Diagnóstico y Bondad de Ajuste",
+            "desc": f"Inspeccionar el estadístico de prueba calculado, los grados de libertad y el p-valor. Comparar contra el nivel de significancia nominal (α = 0.05). Analizar residuos y la bondad de ajuste de {m_name}."
+        },
+        {
+            "step": "Paso 5: Interpretación Práctica y Reporte Científico",
+            "desc": "Traducir los coeficientes e intervalos de confianza del 95% en conclusiones sustantivas de la investigación. Documentar la justificación académica formal y guardar el script de código reproducible."
+        }
+    ]
+
+def recommend_models_for_dataset(df):
+    """Evalúa las características de un DataFrame y sugiere modelos relevantes de la biblioteca."""
+    if df is None or df.empty:
+        return []
+    
+    num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+    cat_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c])]
+    n_rows = len(df)
+    
+    recommendations = []
+    catalog = MODEL_CATALOG
+    
+    for m in catalog:
+        mod = m["module"]
+        m_id = m["id"]
+        match_score = 50.0
+        reasons = []
+        
+        if len(num_cols) >= 1 and mod in ["descriptive", "probability"]:
+            match_score += 35
+            reasons.append(f"Ideal para explorar {len(num_cols)} variables numéricas detectadas")
+        elif len(num_cols) >= 2 and mod in ["regression", "correlation"]:
+            match_score += 40
+            reasons.append("Detectadas 2 o más variables numéricas aptas para correlación/regresión")
+        elif len(num_cols) >= 1 and len(cat_cols) >= 1 and mod in ["inference", "anova"]:
+            match_score += 42
+            reasons.append("Detectada combinación de variable dependiente numérica y factor categórico")
+        elif len(cat_cols) >= 2 and (mod == "correlation" or "chi" in m_id):
+            match_score += 45
+            reasons.append("Detectadas variables categóricas aptas para análisis de independencia (Chi-cuadrado)")
+        elif len(num_cols) >= 3 and mod in ["multivariate", "machine_learning"]:
+            match_score += 38
+            reasons.append("Estructura multivariada de alta dimensión adecuada para clustering / reducción de dimensión")
+            
+        if m.get("is_core"):
+            match_score += 10
+            
+        match_score = min(98.0, round(match_score, 1))
+        
+        if match_score >= 70.0:
+            recommendations.append({
+                "model": m,
+                "score": match_score,
+                "reasons": reasons
+            })
+            
+    recommendations.sort(key=lambda x: x["score"], reverse=True)
+    return recommendations[:15]
+
 # Export items
 MODEL_CATALOG = get_model_catalog()
+

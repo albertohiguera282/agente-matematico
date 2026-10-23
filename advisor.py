@@ -84,7 +84,7 @@ APPLICATION_GUIDE = {
             "cambia a mediana e IQR."
         ),
     },
-    "median_iqr_var1": {
+    "median_iqr": {
         "moment": (
             "Mismo momento exploratorio, pero cuando la variable es asimétrica, tiene valores atípicos "
             "o es ordinal. Se opera después de mirar el histograma o el boxplot y de comparar la media "
@@ -174,9 +174,9 @@ def get_recommendation(answers):
         else:
             if param == "parametric":
                 rec_id = "arithmetic_mean"
-                alt_id = "median_iqr_var1"
+                alt_id = "median_iqr"
             else:
-                rec_id = "median_iqr_var1"
+                rec_id = "median_iqr"
                 alt_id = "arithmetic_mean"
 
     # 2. Compare

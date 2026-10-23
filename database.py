@@ -553,3 +553,30 @@ def recommend_models_for_dataset(df):
 # Export items
 MODEL_CATALOG = get_model_catalog()
 
+# --- Post-filter: remove duplicate ids and the frequentist variation for nonparametric models ---
+_NONPARAMETRIC_IDS = ("median_iqr", "wilcoxon_mann_whitney")  # add more base ids here
+
+
+def _clean_catalog(catalog):
+    best = {}
+    order = []
+    removed = []
+    for model in catalog:
+        model_id = model["id"]
+        if model_id.startswith(_NONPARAMETRIC_IDS) and model_id.endswith("_var1"):
+            removed.append(model_id + " (frequentist, not applicable)")
+            continue
+        if model_id not in best:
+            best[model_id] = model
+            order.append(model_id)
+        else:
+            removed.append(model_id)
+            if len(model["desc"]) > len(best[model_id]["desc"]):
+                best[model_id] = model
+    if removed:
+        print(f"[catalog] removed: {len(removed)} entries")
+    return [best[i] for i in order]
+
+
+MODEL_CATALOG = _clean_catalog(MODEL_CATALOG)
+
